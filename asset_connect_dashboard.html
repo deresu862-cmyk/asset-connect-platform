@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Connect | Alibaba Style Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        primary: '#ff6a00',
+                        primaryHover: '#e65f00'
+                    } 
+                } 
+            } 
+        }
+    </script>
+    <style>
+        body { transition: background 0.2s; font-family: 'Inter', sans-serif; }
+        .active-nav { background-color: #fffaf5 !important; border-left: 4px solid #ff6a00 !important; color: #ff6a00 !important; }
+        .dark .active-nav { background-color: #433827 !important; border-left: 4px solid #ff6a00 !important; color: #ffab70 !important; }
+        .btn-primary { background-color: #ff6a00; color: white; transition: 0.2s; }
+        .btn-primary:hover { background-color: #e65f00; }
+        .b2b-table { border-collapse: collapse; width: 100%; }
+        .b2b-table th { background: #f9fafb; padding: 12px; text-align: left; font-size: 0.85rem; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+        .b2b-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+        .dark .b2b-table th { background: #1e293b; border-bottom: 1px solid #334155; }
+        .dark .b2b-table td { border-bottom: 1px solid #334155; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-slate-900 text-slate-900 dark:text-gray-100">
+
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-slate-950">
+        <div class="w-full max-w-sm p-8 bg-white dark:bg-slate-800 rounded shadow-md border-t-4 border-primary">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-primary mb-2">Asset Connect</h1>
+                <p id="auth-subtitle" class="text-sm text-gray-500">B2B Enterprise Portal Sign In</p>
+            </div>
+            
+            <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();" class="space-y-4">
+                <input type="email" placeholder="Email Address" required class="w-full p-2 border border-gray-300 dark:border-slate-600 rounded outline-none focus:border-primary">
+                <input type="password" placeholder="Password" required class="w-full p-2 border border-gray-300 dark:border-slate-600 rounded outline-none focus:border-primary">
+                <button type="submit" class="w-full btn-primary py-2 rounded font-bold uppercase text-sm">Log In</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app" class="flex h-screen overflow-hidden hidden">
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 hidden md:flex flex-col">
+            <div class="p-6 font-bold text-xl text-primary flex items-center gap-2 border-b border-gray-100 dark:border-slate-700">
+                <i class="fa-solid fa-industry"></i> AssetConnect
+            </div>
+            <nav class="flex-1 px-0 py-4 space-y-1 overflow-y-auto" id="nav-menu"></nav>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-6 z-10 shadow-sm">
+                <div class="flex items-center gap-4">
+                    <input type="text" placeholder="Search Listings, Users, Orders..." class="bg-gray-100 dark:bg-slate-700 rounded px-4 py-1.5 text-sm w-80 border border-gray-200 dark:border-slate-600">
+                </div>
+                <div class="flex items-center gap-4">
+                    <select id="role-switcher" onchange="switchRole(this.value)" class="bg-transparent text-sm border-none cursor-pointer text-gray-600 dark:text-gray-300">
+                        <option value="admin">Super Admin</option>
+                        <option value="owner">Owner</option>
+                        <option value="agent">Agent</option>
+                    </select>
+                    <button onclick="toggleTheme()" class="text-gray-500"><i class="fa-solid fa-sun dark:fa-moon"></i></button>
+                    <button onclick="logout()" class="text-gray-500"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-6" id="dashboard-content"></div>
+        </main>
+    </div>
+
+    <script>
+        const roles = {
+            admin: { stats: ["Total Assets", "Revenue", "Users", "Tickets"], nav: ["Dashboard", "Assets", "Users", "CRM", "Financial", "Analytics"] },
+            owner: { stats: ["My Assets", "Leads", "Appointments", "Income"], nav: ["Dashboard", "My Assets", "Leads", "Billing"] },
+            agent: { stats: ["Listings", "Clients", "Deals", "Commission"], nav: ["Dashboard", "Assigned Assets", "CRM", "Schedule"] }
+        };
+
+        const views = {
+            'Dashboard': () => `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    ${[1,2,3,4].map(i => `
+                        <div class="bg-white dark:bg-slate-800 p-4 border border-gray-200 dark:border-slate-700 rounded shadow-sm">
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">Metric ${i}</p>
+                            <p class="text-2xl font-bold mt-1 text-slate-800 dark:text-white">$${(Math.random()*10000).toFixed(0)}</p>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-6 border border-gray-200 dark:border-slate-700">
+                    <h3 class="font-bold mb-4">Latest Transactions</h3>
+                    <table class="b2b-table">
+                        <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody>
+                            ${[1,2,3].map(i => `<tr><td>#ORD-${100+i}</td><td>Company ${i}</td><td>$${(i*500)}</td><td><span class="text-green-500 text-xs font-bold uppercase">Completed</span></td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            'Assets': () => `<div class="p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm">Asset Management Table View...</div>`,
+            'CRM': () => `<div class="p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm">Lead Pipeline Pipeline...</div>`
+        };
+
+        function handleAuth() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            switchRole('admin');
+        }
+
+        function logout() { location.reload(); }
+
+        function renderView(view) {
+            const container = document.getElementById('dashboard-content');
+            container.innerHTML = `<h2 class="text-xl font-bold mb-4 text-slate-700 dark:text-white">${view}</h2>` + (views[view] ? views[view]() : `<p>Viewing ${view} module</p>`);
+            document.querySelectorAll('#nav-menu a').forEach(a => a.classList.toggle('active-nav', a.innerText === view));
+        }
+
+        function switchRole(role) {
+            const nav = document.getElementById('nav-menu');
+            nav.innerHTML = roles[role].nav.map(n => `
+                <a href="#" onclick="renderView('${n}')" class="block py-3 px-6 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-all cursor-pointer border-l-4 border-transparent">${n}</a>
+            `).join('');
+            renderView('Dashboard');
+        }
+
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+    </script>
+</body>
+</html>
